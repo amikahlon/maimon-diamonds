@@ -8,8 +8,9 @@ export function initDragZone(el = document.getElementById('dragZone')) {
   el.addEventListener('pointermove', e => {
     if (!down) return;
     const now = performance.now(), dx = e.clientX - lastX, dt = Math.max(now - lastT, 8);
-    st.yaw += dx * 0.009;
-    st.yawVel = (dx * 0.009) / dt * 16;     // radians per frame, used for inertia
+    const sensitivity = matchMedia('(pointer: coarse)').matches ? .0065 : .008;
+    st.yaw += dx * sensitivity;
+    st.yawVel = Math.max(-.12, Math.min(.12, (dx * sensitivity) / dt * 16));
     lastX = e.clientX; lastT = now;
   });
   const up = () => { down = false; };

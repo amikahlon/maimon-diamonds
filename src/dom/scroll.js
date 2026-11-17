@@ -20,7 +20,7 @@ export function initScroll() {
 
   // hero → anatomy: the metal falls away and the centre stone turns to profile
   gsap.timeline({ scrollTrigger: { trigger: '#anatomy', start: 'top bottom', end: 'top top', scrub: 1 } })
-    .to(st, { ax: () => narrow() ? 0 : -.56, ay: () => narrow() ? .5 : 0, as: () => narrow() ? 2.4 : 2.0, at: 1, ease: 'none' });
+    .to(st, { ax: () => narrow() ? 0 : -.56, ay: () => narrow() ? .46 : 0, as: () => narrow() ? 1 : 2.0, at: 1, ease: 'none' });
   ScrollTrigger.create({ trigger: '#anatomy', start: 'top 20%', end: 'bottom 70%',
     onToggle: s => gsap.to(st, { anat: s.isActive ? 1 : 0, duration: .8, ease: 'power2.out' }) });
   gsap.timeline({ scrollTrigger: { trigger: '#shapes', start: 'top bottom', end: 'top 30%', scrub: 1 } })

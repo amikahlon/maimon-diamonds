@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import { st, reduceMotion } from '../state.js';
+import { st, reduceMotion, isMobile } from '../state.js';
 
 /**
  * Two-act intro.
@@ -43,12 +43,12 @@ export function initIntro({ lenis, ready }) {
       .addLabel('ring', 2.1)
       .add(() => { if (!ready.settled) { tl.pause(); ready.then(() => tl.play()); } }, 'ring')
     // Act II
-      .to(st, { intro: 1, duration: 3.4, ease: 'expo.inOut' }, 'ring')
-      .to(st, { sweep: 1, duration: 1.6, ease: 'power2.inOut' }, 'ring+=2.0')
-      .to('.jewelry', { opacity: 1, duration: 1.2 }, 'ring+=2.4')
-      .to('#nav', { opacity: 1, duration: 1.2 }, 'ring+=2.7')
-      .to('.hero-cap,.hero-cta,.metals,.loupe', { opacity: 1, duration: 1.2, stagger: .1 }, 'ring+=2.9')
-      .to('#skip', { autoAlpha: 0, duration: .4 }, 'ring+=3.2');
+      .to(st, { intro: 1, duration: isMobile ? 2.15 : 3.15, ease: 'expo.inOut' }, 'ring')
+      .to(st, { sweep: 1, duration: isMobile ? 1 : 1.55, ease: 'power2.inOut' }, `ring+=${isMobile ? 1.25 : 1.85}`)
+      .to('.jewelry', { opacity: 1, duration: .9 }, `ring+=${isMobile ? 1.55 : 2.25}`)
+      .to('#nav', { opacity: 1, duration: 1 }, `ring+=${isMobile ? 1.65 : 2.5}`)
+      .to('.hero-cap,.hero-cta,.metals,.loupe', { opacity: 1, duration: 1, stagger: .08 }, `ring+=${isMobile ? 1.75 : 2.7}`)
+      .to('#skip', { autoAlpha: 0, duration: .35 }, `ring+=${isMobile ? 1.95 : 3}`);
     if (reduceMotion) tl.progress(1);
     return tl;
   }

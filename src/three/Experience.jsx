@@ -8,9 +8,9 @@ import { Ring } from './Ring.jsx';
 
 /* quality tiers — the phone gets fewer bounces, no dispersion, smaller cubes */
 const TIERS = {
-  high: { dpr: [1, 2], bounces: 4, aberration: .02, cube: 256, shadowRes: 512, sweep: true },
-  mid:  { dpr: [1, 1.5], bounces: 3, aberration: .012, cube: 256, shadowRes: 384, sweep: true },
-  low:  { dpr: [1, 1.25], bounces: 2, aberration: 0, cube: 128, shadowRes: 256, sweep: false },
+  high: { dpr: [1, 2], bounces: 5, aberration: .016, cube: 256, shadowRes: 512, sweep: true },
+  mid:  { dpr: [1, 1.5], bounces: 4, aberration: .01, cube: 256, shadowRes: 384, sweep: true },
+  low:  { dpr: [1, 1.35], bounces: 3, aberration: .004, cube: 128, shadowRes: 256, sweep: false },
 };
 
 /* renders only while the ring is on screen (frameloop="demand") */
@@ -39,7 +39,7 @@ export function Experience({ updateLabels, onReady }) {
       frameloop="demand"
       dpr={tier.dpr}
       camera={{ fov: 30, position: [0, 0, 14], near: .1, far: 100 }}
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1 }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.08 }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
     >

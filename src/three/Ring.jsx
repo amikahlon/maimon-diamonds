@@ -28,8 +28,11 @@ function floatGeometry(src) {
     for (let i = 0; i < a.count; i++) { arr[i * 3] = a.getX(i); arr[i * 3 + 1] = a.getY(i); arr[i * 3 + 2] = a.getZ(i); }
     g.setAttribute(key, new THREE.BufferAttribute(arr, 3));
   }
-  if (src.index) g.setIndex(src.index.clone());
-  return g.toNonIndexed();
+  if (src.index) {
+    g.setIndex(src.index.clone());
+    return g.toNonIndexed();
+  }
+  return g;
 }
 
 /* star glints — tiny additive sprites that flash on the crown facets */
@@ -65,11 +68,12 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
   /* ---------- materials ---------- */
   const metalMat = useMemo(() => new THREE.MeshPhysicalMaterial({
     color: METALS[metal.current].color, metalness: 1, roughness: METALS[metal.current].roughness,
-    envMapIntensity: 1.5, clearcoat: .35, clearcoatRoughness: .08, transparent: true,
+    envMapIntensity: 1.85, clearcoat: .72, clearcoatRoughness: .12, transparent: true,
   }), []);
   const paveMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: '#ffffff', metalness: 0, roughness: 0, ior: 2.4, specularIntensity: 1, envMapIntensity: 3.2,
-    iridescence: .55, iridescenceIOR: 1.8, iridescenceThicknessRange: [180, 700], flatShading: true, transparent: true,
+    color: '#fffdf8', metalness: 0, roughness: .035, ior: 2.4, specularIntensity: 1, envMapIntensity: 3.8,
+    transmission: .16, thickness: .08, iridescence: .18, iridescenceIOR: 1.6,
+    iridescenceThicknessRange: [180, 420], flatShading: true, transparent: true,
   }), []);
   const metalTarget = useRef(new THREE.Color(METALS[metal.current].color));
   const roughTarget = useRef(METALS[metal.current].roughness);
@@ -83,9 +87,9 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
   const star = useStarTexture();
   const glints = useMemo(() => {
     const top = stoneBox.max.y, gr = stoneBox.max.x;
-    return Array.from({ length: 9 }, (_, i) => {
-      const a = i / 9 * Math.PI * 2 + .3, r = gr * (i % 2 ? .78 : .45);
-      return { p: [Math.cos(a) * r, top * (i % 2 ? .55 : 1.02), Math.sin(a) * r], ph: Math.random() * 20, sp: .7 + Math.random() * 1.6, s: gr * (.5 + Math.random() * .5) };
+    return Array.from({ length: 6 }, (_, i) => {
+      const a = i / 6 * Math.PI * 2 + .3, r = gr * (i % 2 ? .72 : .42);
+      return { p: [Math.cos(a) * r, top * (i % 2 ? .52 : .94), Math.sin(a) * r], ph: i * 2.73, sp: .62 + (i % 3) * .22, s: gr * (.3 + (i % 2) * .12) };
     });
   }, [stoneBox]);
   const glintRefs = useRef([]);
@@ -103,7 +107,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
         ppu, monoH: h,
         x: (cx - innerWidth / 2) / ppu,
         y: -(cy + h * .06 - innerHeight / 2) / ppu,
-        scale: (h * (narrow() ? 1.3 : .98)) / ppu / ringH,
+        scale: (h * (narrow() ? 1.62 : 1.02)) / ppu / ringH,
         center: (meta.girdleY + meta.tableY * meta.stoneR - (meta.innerR + .115)) / 2, // vertical centre of the ring
       };
     };
@@ -136,18 +140,25 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     // drag inertia + idle
     st.yaw += st.yawVel; st.yawVel *= .94;
     clock.current.spin += dt * (.12 + k * .25);
-    const yaw = -.62 + Math.sin(t * .35) * .18 + st.yaw + st.spinBoost + clock.current.spin * k + (1 - ie) * -Math.PI * 2.2;
+    const yaw = -.6 + Math.sin(t * .28) * .1 + st.yaw + st.spinBoost + clock.current.spin * k + (1 - ie) * -Math.PI * 1.8;
     const pointer = state.pointer;
 
     // hero pose (follows the page until the anatomy takes over)
     const heroY = l.y + scrollY / l.ppu;
     const heroScale = l.scale;
     // intro pose: a macro view of the stone, face-up, filling the frame
-    const macroScale = heroScale * (narrow() ? 4.2 : 5.4);
+    // Start close enough to read the facets, without turning the stone into an
+    // abstract full-screen texture on narrow or slower devices.
+    const macroScale = heroScale * (narrow() ? 2.35 : 3.15);
     const stoneLocalY = (meta.girdleY - l.center);
     // anatomy pose: stone alone, in profile
     const halfW = innerWidth / 2 / l.ppu, halfH = innerHeight / 2 / l.ppu;
-    const anatScale = (l.monoH * .22 * st.as) / l.ppu / meta.stoneR;
+    // Size the mobile anatomy stone from the live viewport, so browser chrome
+    // and short screens cannot push it into the copy below.
+    const anatomyRadiusPx = narrow()
+      ? Math.min(innerWidth * .22, innerHeight * .14) * st.as
+      : l.monoH * .22 * st.as;
+    const anatScale = anatomyRadiusPx / l.ppu / meta.stoneR;
 
     const tiltX = lerp(lerp(1.42, .42, ie) + pointer.y * -.12 * ie, .06, k);
     tmpE.set(tiltX, 0, 0);
@@ -161,7 +172,8 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     px = lerp(px, st.ax * halfW - stoneOff.x * scale, k);
     py = lerp(py, st.ay * halfH - stoneOff.y * scale, k) + st.out * 14;
 
-    place.current.position.set(px + pointer.x * .12 * ie * (1 - k), py, 0);
+    const pointerScale = narrow() ? .035 : .12;
+    place.current.position.set(px + pointer.x * pointerScale * ie * (1 - k), py, 0);
     place.current.scale.setScalar(scale);
     tilt.current.rotation.set(tiltX, 0, pointer.x * -.06 * ie * (1 - k));
     tilt.current.position.y = -l.center;
@@ -184,7 +196,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     /* glints */
     glintRefs.current.forEach((g, n) => {
       if (!g) return; const d = glints[n];
-      const f = Math.pow(Math.max(0, Math.sin(t * d.sp + d.ph)), 16) * ie;
+      const f = Math.pow(Math.max(0, Math.sin(t * d.sp + d.ph)), 28) * ie * (1 - k * .35);
       g.material.opacity = f; g.scale.setScalar(d.s * (.35 + f)); g.material.rotation = t * .3 + d.ph;
     });
 
@@ -227,8 +239,8 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
           <primitive object={pave} />
         </group>
         <mesh ref={stone} geometry={stoneGeo} position={stoneNodePos} scale={stoneNodeScale}>
-          <MeshRefractionMaterial envMap={studio.cube} bounces={tier.bounces} ior={2.42} fresnel={1}
-            aberrationStrength={tier.aberration} fastChroma color="white" />
+          <MeshRefractionMaterial envMap={studio.cube} bounces={tier.bounces} ior={2.417} fresnel={.82}
+            aberrationStrength={tier.aberration} fastChroma color="#fffdf8" />
           {glints.map((d, n) => (
             <sprite key={n} ref={el => (glintRefs.current[n] = el)} position={d.p}>
               <spriteMaterial map={star} transparent opacity={0} depthWrite={false} depthTest={false} blending={THREE.AdditiveBlending} />

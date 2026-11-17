@@ -19,9 +19,9 @@ export const narrow = () => innerWidth <= 900;
 
 /* metal presets — linear-ish base colours for a metalness:1 physical material */
 export const METALS = {
-  yellow: { name: 'זהב צהוב 18K', color: '#f3c873', roughness: 0.11 },
-  white:  { name: 'זהב לבן 18K',  color: '#e9e8e4', roughness: 0.08 },
-  rose:   { name: 'זהב אדום 18K', color: '#f0b498', roughness: 0.11 },
+  yellow: { name: 'זהב צהוב 18K', color: '#d8aa52', roughness: 0.16 },
+  white:  { name: 'זהב לבן 18K',  color: '#dedfdf', roughness: 0.13 },
+  rose:   { name: 'זהב אדום 18K', color: '#cf8f77', roughness: 0.17 },
 };
 export const metal = {
   current: 'yellow',
