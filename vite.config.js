@@ -8,6 +8,6 @@ export default defineConfig({
     target: 'es2020',
     assetsInlineLimit: 0,
     chunkSizeWarningLimit: 1500,
-    rollupOptions: { output: { manualChunks: id => id.includes('ringModel') ? 'ring-model' : (id.includes('node_modules/three') || id.includes('@react-three') || id.includes('three-mesh-bvh') || id.includes('three-stdlib')) ? 'three' : undefined } },
+    rollupOptions: { output: { manualChunks: id => (id.includes('node_modules/three') || id.includes('@react-three') || id.includes('three-mesh-bvh') || id.includes('three-stdlib')) ? 'three' : undefined } },
   },
 });

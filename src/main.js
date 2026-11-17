@@ -11,25 +11,39 @@ import { initIntro } from './dom/intro.js';
 import { initLabels } from './dom/labels.js';
 import { initMetalPicker } from './dom/metalPicker.js';
 import { initDragZone } from './dom/dragZone.js';
+import { initMicroInteractions } from './dom/micro.js';
 
 if (/Chrome\//.test(navigator.userAgent) && !isMobile) document.documentElement.classList.add('refract');
 
 let resolveReady;
 const ready = new Promise(r => { resolveReady = r; });
 ready.then(() => { ready.settled = true; });
-bridge.ready = () => resolveReady();
+const glStatus = document.getElementById('gl-status');
+document.body.classList.add('gl-loading');
+bridge.ready = () => {
+  document.body.classList.remove('gl-loading');
+  glStatus.textContent = '';
+  resolveReady();
+};
+bridge.failed = () => {
+  document.body.classList.remove('gl-loading');
+  document.body.classList.add('gl-fallback');
+  glStatus.textContent = 'התצוגה התלת־ממדית אינה זמינה כרגע. תוכן האתר נשאר נגיש.';
+  resolveReady();
+};
 
 const lenis = initScroll();
 const updateLabels = initLabels();
 initMetalPicker();
 initDragZone();
+initMicroInteractions();
 initIntro({ lenis, ready });
 
 const supportsWebGL2 = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();
 if (supportsWebGL2) {
   import('./three/mount.jsx')
     .then(m => m.mount(document.getElementById('gl-root'), { updateLabels }))
-    .catch(err => { console.error(err); resolveReady(); });
+    .catch(err => { console.error(err); bridge.failed(); });
 } else {
-  resolveReady();   // the typographic hero still stands on its own
+  bridge.failed();   // the typographic hero still stands on its own
 }

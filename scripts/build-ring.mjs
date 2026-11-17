@@ -23,13 +23,15 @@ const shoulder = (th) => {
   const d = Math.abs(Math.atan2(Math.sin(th - TOP), Math.cos(th - TOP)));
   return Math.exp(-(((d - 0.36) / 0.24) ** 2));          // two arches either side of the head
 };
-const thick = (th) => 0.115 + 0.30 * shoulder(th);       // radial thickness
+// Slim, tapered cathedral: a fine 1.9 mm shank that rises gently into knife-like
+// shoulders. The old 0.30 rise read as a solid wedge under the head.
+const thick = (th) => 0.098 + 0.19 * shoulder(th);       // radial thickness
 const width = (th) => {
   const d = Math.abs(Math.atan2(Math.sin(th - TOP), Math.cos(th - TOP)));
-  return 0.205 - 0.07 * Math.exp(-((d / 0.75) ** 2));     // tapers toward the head
+  return 0.185 - 0.085 * Math.exp(-((d / 0.62) ** 2));    // tapers toward the head
 };
 
-function bandGeometry(seg = 256, cs = 32) {
+function bandGeometry(seg = 224, cs = 28) {
   const pos = [], idx = [];
   const n = 5; // superellipse exponent → soft-square comfort-fit section
   for (let i = 0; i < seg; i++) {
@@ -100,9 +102,9 @@ function headGeometry() {
       p(0.10, R + 0.13), p(0.22, R + 0.30), p(0.36, GIRDLE_Y - 0.16),
       p(STONE_R + 0.035, GIRDLE_Y), p(STONE_R - 0.01, GIRDLE_Y + hc * STONE_R * 0.55),
     ]);
-    const tube = new THREE.TubeGeometry(curve, 32, 0.034, 12, false);
+    const tube = new THREE.TubeGeometry(curve, 28, 0.031, 12, false);
     parts.push(tube);
-    const tip = new THREE.SphereGeometry(0.038, 20, 14);
+    const tip = new THREE.SphereGeometry(0.036, 24, 16);
     const e = curve.getPoint(1); tip.translate(e.x, e.y, e.z); parts.push(tip);
   }
   const rail = new THREE.TorusGeometry(STONE_R * 0.86, 0.022, 14, 96); rail.rotateX(Math.PI / 2); rail.translate(0, GIRDLE_Y - 0.15, 0); parts.push(rail);

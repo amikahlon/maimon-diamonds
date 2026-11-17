@@ -4,5 +4,13 @@ import { Experience } from './Experience.jsx';
 
 /** Mounts the 3D layer behind the page's DOM. Everything else stays vanilla. */
 export function mount(el, { updateLabels }) {
-  createRoot(el).render(<Experience updateLabels={updateLabels} onReady={() => bridge.ready?.()} />);
+  const root = createRoot(el);
+  root.render(
+    <Experience
+      updateLabels={updateLabels}
+      onReady={() => bridge.ready?.()}
+      onError={() => bridge.failed?.()}
+    />
+  );
+  return () => root.unmount();
 }

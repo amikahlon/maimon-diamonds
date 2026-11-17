@@ -9,6 +9,9 @@ export const st = {
   ax: 0, ay: 0, as: 1,   // anatomy placement (screen-relative) and scale
   out: 0,        // leaving the anatomy section
   anat: 0,       // anatomy labels visibility
+  inspect: 0,    // cinematic inspection pass through the anatomy section
+  cam: 0,        // subtle camera rig blend
+  velocity: 0,   // normalized scroll velocity for physical camera response
   yaw: 0, yawVel: 0,     // user drag (radians, inertia)
   spinBoost: 0,  // extra rotation from the 360° button
 };
@@ -17,11 +20,11 @@ export const isMobile = matchMedia('(max-width: 760px)').matches || matchMedia('
 export const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const narrow = () => innerWidth <= 900;
 
-/* metal presets — linear-ish base colours for a metalness:1 physical material */
+/* metal presets — sRGB F0 reflectance for a metalness:1 physical material */
 export const METALS = {
-  yellow: { name: 'זהב צהוב 18K', color: '#d8aa52', roughness: 0.16 },
-  white:  { name: 'זהב לבן 18K',  color: '#dedfdf', roughness: 0.13 },
-  rose:   { name: 'זהב אדום 18K', color: '#cf8f77', roughness: 0.17 },
+  yellow: { name: 'זהב צהוב 18K', color: '#f2d08f', roughness: 0.1 },
+  white:  { name: 'זהב לבן 18K',  color: '#e4e3df', roughness: 0.09 },
+  rose:   { name: 'זהב אדום 18K', color: '#f0b9a0', roughness: 0.11 },
 };
 export const metal = {
   current: 'yellow',

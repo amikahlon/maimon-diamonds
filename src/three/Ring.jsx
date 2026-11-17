@@ -4,20 +4,19 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { MeshRefractionMaterial } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { suspend } from 'suspend-react';
-import ringModel from './ringModel.js';
-import { st, metal, METALS, narrow } from '../state.js';
+import ringUrl from '../../models/ring.glb?url';
+import { st, metal, METALS, narrow, reduceMotion } from '../state.js';
 import { createStudio } from './studio.js';
 import meta from '../ringMeta.json';
 
 /* ring.glb is bundled as base64 and parsed in memory → works on any static host */
 function loadRing() {
   return suspend(async () => {
-    const bin = Uint8Array.from(atob(ringModel), c => c.charCodeAt(0)).buffer;
-    const gltf = await new GLTFLoader().parseAsync(bin, '');
+    const gltf = await new GLTFLoader().loadAsync(ringUrl);
     const nodes = {};
     gltf.scene.traverse(o => { if (o.name) nodes[o.name] = o; });
     return { nodes };
-  }, ['maimon-ring']);
+  }, ['maimon-ring', ringUrl]);
 }
 
 /* meshopt-quantized attributes → float, so the BVH ray tracer reads real units */
@@ -53,6 +52,20 @@ function useStarTexture() {
   }, []);
 }
 
+function useAuraTexture() {
+  return useMemo(() => {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'), h = 128;
+    const rg = g.createRadialGradient(h, h, 0, h, h, h);
+    rg.addColorStop(0, 'rgba(255,255,255,.72)');
+    rg.addColorStop(.18, 'rgba(255,248,225,.22)');
+    rg.addColorStop(.42, 'rgba(193,222,255,.09)');
+    rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, 256, 256);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  }, []);
+}
+
 const RING_H = (meta.girdleY + meta.tableY * meta.stoneR) + (meta.innerR + .115);
 const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const lerp = THREE.MathUtils.lerp;
@@ -66,18 +79,27 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
   useEffect(() => { scene.environment = studio.pmrem; return () => studio.dispose(); }, [studio, scene]);
 
   /* ---------- materials ---------- */
+  // True metal: metalness 1 and a measured-ish F0 colour. The look comes from
+  // the studio reflections, not from a dull base colour + clearcoat (which read
+  // as cream plastic). No transmission anywhere: it costs a full extra pass.
   const metalMat = useMemo(() => new THREE.MeshPhysicalMaterial({
     color: METALS[metal.current].color, metalness: 1, roughness: METALS[metal.current].roughness,
-    envMapIntensity: 1.85, clearcoat: .72, clearcoatRoughness: .12, transparent: true,
+    envMapIntensity: 1.45, specularIntensity: 1, transparent: true,
   }), []);
   const paveMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: '#fffdf8', metalness: 0, roughness: .035, ior: 2.4, specularIntensity: 1, envMapIntensity: 3.8,
-    transmission: .16, thickness: .08, iridescence: .18, iridescenceIOR: 1.6,
-    iridescenceThicknessRange: [180, 420], flatShading: true, transparent: true,
+    color: '#f3f5fa', metalness: 0, roughness: 0, ior: 2.42, specularIntensity: 1, envMapIntensity: 1.7,
+    iridescence: .35, iridescenceIOR: 1.8, iridescenceThicknessRange: [220, 520],
+    flatShading: true, transparent: true,
   }), []);
+  // drei's refraction shader multiplies env × colour, so a colour above 1 is a
+  // stone-only exposure gain: white diamond without blowing out the gold.
+  const stoneGain = useMemo(() => new THREE.Color(1.82, 1.86, 1.96), []);
   const metalTarget = useRef(new THREE.Color(METALS[metal.current].color));
   const roughTarget = useRef(METALS[metal.current].roughness);
-  useEffect(() => metal.on(k => { metalTarget.current.set(METALS[k].color); roughTarget.current = METALS[k].roughness; }), []);
+  useEffect(() => metal.on(k => {
+    metalTarget.current.set(METALS[k].color);
+    roughTarget.current = METALS[k].roughness;
+  }), []);
 
   const stoneGeo = useMemo(() => floatGeometry(nodes.CenterStone.geometry), [nodes]);
   const stoneBox = useMemo(() => { stoneGeo.computeBoundingBox(); return stoneGeo.boundingBox; }, [stoneGeo]);
@@ -85,6 +107,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
 
   /* ---------- glints on the stone ---------- */
   const star = useStarTexture();
+  const aura = useAuraTexture();
   const glints = useMemo(() => {
     const top = stoneBox.max.y, gr = stoneBox.max.x;
     return Array.from({ length: 6 }, (_, i) => {
@@ -93,6 +116,9 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     });
   }, [stoneBox]);
   const glintRefs = useRef([]);
+  useEffect(() => () => {
+    metalMat.dispose(); paveMat.dispose(); stoneGeo.dispose(); star.dispose(); aura.dispose();
+  }, [metalMat, paveMat, stoneGeo, star, aura]);
 
   /* ---------- layout: the ring is framed by the DOM monogram ---------- */
   const L = useRef({});
@@ -107,7 +133,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
         ppu, monoH: h,
         x: (cx - innerWidth / 2) / ppu,
         y: -(cy + h * .06 - innerHeight / 2) / ppu,
-        scale: (h * (narrow() ? 1.62 : 1.02)) / ppu / ringH,
+        scale: (h * (narrow() ? 1.78 : 1.02)) / ppu / ringH,
         center: (meta.girdleY + meta.tableY * meta.stoneR - (meta.innerR + .115)) / 2, // vertical centre of the ring
       };
     };
@@ -118,7 +144,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
   }, [camera, size]);
 
   /* ---------- refs ---------- */
-  const place = useRef(), tilt = useRef(), body = useRef(), stone = useRef(), shadow = useRef();
+  const place = useRef(), tilt = useRef(), body = useRef(), stone = useRef(), shadow = useRef(), auraRef = useRef();
   const shadowUniforms = useMemo(() => ({ uA: { value: 0 } }), []);
   const shadowMat = useRef();
   const firstFrame = useRef(false), clock = useRef({ spin: 0 });
@@ -138,9 +164,11 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     const k = easeInOut(Math.min(1, st.at));                  // hero → anatomy
     const i = st.intro, ie = 1 - Math.pow(1 - i, 3);
     // drag inertia + idle
-    st.yaw += st.yawVel; st.yawVel *= .94;
-    clock.current.spin += dt * (.12 + k * .25);
-    const yaw = -.6 + Math.sin(t * .28) * .1 + st.yaw + st.spinBoost + clock.current.spin * k + (1 - ie) * -Math.PI * 1.8;
+    st.yaw += st.yawVel * dt * 60;
+    st.yawVel *= Math.pow(.94, dt * 60);
+    if (!reduceMotion) clock.current.spin += dt * (.1 + k * .2);
+    const idle = reduceMotion ? 0 : Math.sin(t * .28) * .085;
+    const yaw = -.6 + idle + st.yaw + st.spinBoost + clock.current.spin * k + (1 - ie) * -Math.PI * 1.8;
     const pointer = state.pointer;
 
     // hero pose (follows the page until the anatomy takes over)
@@ -160,7 +188,8 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
       : l.monoH * .22 * st.as;
     const anatScale = anatomyRadiusPx / l.ppu / meta.stoneR;
 
-    const tiltX = lerp(lerp(1.42, .42, ie) + pointer.y * -.12 * ie, .06, k);
+    const inspectArc = Math.sin(st.inspect * Math.PI);
+    const tiltX = lerp(lerp(1.42, .42, ie) + pointer.y * -.12 * ie, .06, k) + inspectArc * .085;
     tmpE.set(tiltX, 0, 0);
     const stoneOff = tmpV.set(0, stoneLocalY, 0).applyEuler(tmpE);
 
@@ -168,7 +197,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     let scale = Math.exp(lerp(Math.log(macroScale), Math.log(heroScale), ie));
     let px = lerp(-stoneOff.x * scale, l.x, ie);
     let py = lerp(-stoneOff.y * scale, heroY, ie);
-    scale = Math.exp(lerp(Math.log(scale), Math.log(anatScale), k));
+    scale = Math.exp(lerp(Math.log(scale), Math.log(anatScale), k)) * (1 + inspectArc * .065);
     px = lerp(px, st.ax * halfW - stoneOff.x * scale, k);
     py = lerp(py, st.ay * halfH - stoneOff.y * scale, k) + st.out * 14;
 
@@ -178,7 +207,7 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     tilt.current.rotation.set(tiltX, 0, pointer.x * -.06 * ie * (1 - k));
     tilt.current.position.y = -l.center;
     body.current.rotation.y = yaw;
-    stone.current.rotation.y = yaw;
+    stone.current.rotation.y = yaw + st.inspect * .62;
     place.current.visible = st.out < .98;
 
     /* metal falls away for the anatomy section */
@@ -189,25 +218,33 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
     if (shadowMat.current) shadowMat.current.uniforms.uA.value = metalA * Math.max(0, (ie - .55) / .45);
 
     /* light sweep (desktop: live env re-render while it runs) */
-    if (tier.sweep && st.sweep > 0 && st.sweep < 1) { studio.setSweep(st.sweep); studio.render(); scene.environment = studio.pmrem; }
-    else if (studio._sweeping !== (st.sweep > 0 && st.sweep < 1)) { studio.setSweep(null); studio.render(); scene.environment = studio.pmrem; }
-    studio._sweeping = st.sweep > 0 && st.sweep < 1;
+    const sweepActive = tier.sweep && st.sweep > 0 && st.sweep < 1;
+    const sweepStep = sweepActive ? Math.round(st.sweep * 18) / 18 : null;
+    if (studio.setSweep(sweepStep)) {
+      studio.render();
+      scene.environment = studio.pmrem;
+    }
 
     /* glints */
     glintRefs.current.forEach((g, n) => {
       if (!g) return; const d = glints[n];
-      const f = Math.pow(Math.max(0, Math.sin(t * d.sp + d.ph)), 28) * ie * (1 - k * .35);
+      const f = reduceMotion ? 0 : Math.pow(Math.max(0, Math.sin(t * d.sp + d.ph)), 28) * ie * (1 - k * .35);
       g.material.opacity = f; g.scale.setScalar(d.s * (.35 + f)); g.material.rotation = t * .3 + d.ph;
     });
+    if (auraRef.current) {
+      const breathe = reduceMotion ? .82 : .82 + Math.sin(t * .7) * .18;
+      auraRef.current.material.opacity = (.08 + breathe * .055) * ie * (1 - k * .35);
+      auraRef.current.scale.setScalar(1.45 + breathe * .16);
+    }
 
     /* labels: anchor points in the stone's un-spun frame */
     if (updateLabels) {
-      const gr = stoneBox.max.x, top = stoneBox.max.y, bot = stoneBox.min.y, cy0 = (top + bot) * 0;
+      const gr = stoneBox.max.x, top = stoneBox.max.y, bot = stoneBox.min.y;
       const A = { table: [gr * .28, top, 0], crown: [gr * .78, top * .5, 0], girdle: [gr, 0, 0], pavilion: [gr * .55, bot * .5, 0], culet: [0, bot, 0] };
       updateLabels(key => {
         const a = A[key];
-        tmpV.set(a[0], a[1], a[2]).multiply(stoneNodeScale).add(stoneNodePos);
-        tilt.current.localToWorld(tmpV).project(state.camera);
+        tmpV.set(a[0], a[1], a[2]);
+        stone.current.localToWorld(tmpV).project(state.camera);
         return { x: (tmpV.x * .5 + .5) * innerWidth, y: (-tmpV.y * .5 + .5) * innerHeight };
       });
     }
@@ -238,9 +275,12 @@ export function Ring({ tier, updateLabels, onFirstFrame }) {
           <mesh geometry={nodes.Beads.geometry} material={metalMat} position={nodes.Beads.position} scale={nodes.Beads.scale} />
           <primitive object={pave} />
         </group>
+        <sprite ref={auraRef} position={[stoneNodePos.x, stoneNodePos.y, stoneNodePos.z - .08]} renderOrder={-2}>
+          <spriteMaterial map={aura} transparent opacity={0} depthWrite={false} depthTest={false} blending={THREE.AdditiveBlending} />
+        </sprite>
         <mesh ref={stone} geometry={stoneGeo} position={stoneNodePos} scale={stoneNodeScale}>
           <MeshRefractionMaterial envMap={studio.cube} bounces={tier.bounces} ior={2.417} fresnel={.82}
-            aberrationStrength={tier.aberration} fastChroma color="#fffdf8" />
+            aberrationStrength={tier.aberration} fastChroma color={stoneGain} />
           {glints.map((d, n) => (
             <sprite key={n} ref={el => (glintRefs.current[n] = el)} position={d.p}>
               <spriteMaterial map={star} transparent opacity={0} depthWrite={false} depthTest={false} blending={THREE.AdditiveBlending} />
