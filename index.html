@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maimon Diamonds — טבעות אירוסין</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;600;700&family=Bellefair&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+
+
+</head>
+<body class="locked">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="liquid" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.005 0.012" numOctaves="2" seed="4" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="2" result="s"/>
+    <feDisplacementMap in="SourceGraphic" in2="s" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div id="gl-root" aria-hidden="true"></div>
+<button id="skip">דלג על הפתיח</button>
+
+<nav id="nav" aria-label="ראשי">
+  <a class="brand" href="#top" aria-label="Maimon Diamonds — לעמוד הבית"><span class="md">MD</span><span class="wm">MAIMON DIAMONDS<i>JEWELRY</i></span></a>
+  <div class="links">
+    <a href="#shapes">יהלומים</a>
+    <a href="#shapes">טבעות אירוסין</a>
+    <a href="#anatomy">איך אנחנו בוחרים</a>
+    <a href="#contact">צור קשר</a>
+  </div>
+  <a class="pill" href="#contact"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6 0l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.1.1.7-.1 1.3Z"/></svg><span>קביעת פגישה</span></a>
+</nav>
+
+<main id="top">
+  <section class="hero" id="hero">
+    <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Maimon Diamonds — יהלומים וטבעות אירוסין</h1>
+    <div class="mono behind" id="mono" aria-hidden="true">
+      <span class="m">M</span><span class="d">D</span>
+      <div class="seam"></div>
+      <div class="band"><b id="bandText"></b></div>
+      <div class="jewelry">JEWELRY</div>
+    </div>
+    <div class="drag-zone" id="dragZone" aria-hidden="true"></div>
+    <p class="hero-cap front"><strong>טבעת אחת. אבן אחת.</strong>סוליטר בשש שיניים עם פווה עדין על הכתפיים. בחרו גוון זהב וסובבו את הטבעת.</p>
+    <fieldset class="metals front" id="metals">
+      <legend class="sr">גוון הזהב</legend>
+      <button type="button" data-metal="yellow" aria-pressed="true" style="--sw:linear-gradient(135deg,#fff1c7,#d9a94e 45%,#f6dc96 60%,#a7772f)"><span class="sr">זהב צהוב 18K</span></button>
+      <button type="button" data-metal="white" aria-pressed="false" style="--sw:linear-gradient(135deg,#ffffff,#c9c9c7 45%,#f2f2f0 60%,#8f8f8c)"><span class="sr">זהב לבן 18K</span></button>
+      <button type="button" data-metal="rose" aria-pressed="false" style="--sw:linear-gradient(135deg,#ffe3d6,#d39176 45%,#f3c3ad 60%,#9a5e48)"><span class="sr">זהב אדום 18K</span></button>
+      <output id="metalName">זהב צהוב 18K</output>
+    </fieldset>
+    <div class="hero-cta front">
+      <a class="pill" href="#contact"><span>לקביעת פגישה</span></a>
+      <a class="ghost" href="#anatomy">איך אנחנו בוחרים</a>
+    </div>
+    <button type="button" class="loupe front" id="spin360"><svg viewBox="0 0 24 12" aria-hidden="true"><path d="M2 6h20M2 6l4-4M2 6l4 4M22 6l-4-4M22 6l-4 4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>גררו לסיבוב · 360°</button>
+  </section>
+
+  <section class="anatomy" id="anatomy">
+    <div class="sticky">
+      <div class="copy front">
+        <div class="eyebrow reveal">ANATOMY OF LIGHT</div>
+        <h2 class="reveal">אנטומיה<br>של אור</h2>
+        <p class="reveal">ליהלום עגול יש 57 פאות. הזוויות שלהן קובעות לאן האור הולך: חזרה אל העין, או החוצה מתחתית האבן. אנחנו בוחרים רק אבנים שבהן האור חוזר.</p>
+        <div class="lab-list">
+          <div><b>שולחן</b><span>53–58%</span></div>
+          <div><b>כתר</b><span>34.5°</span></div>
+          <div><b>חגורה</b><span>THIN–MED</span></div>
+          <div><b>תחתית</b><span>40.8°</span></div>
+          <div><b>קולט</b><span>NONE</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shapes front" id="shapes">
+    <header>
+      <div>
+        <div class="eyebrow reveal">THE SHAPES</div>
+        <h2 class="reveal">ארבע צורות,<br>ארבעה אופיים</h2>
+      </div>
+      <p class="reveal">כל צורה מחזירה אור אחרת. בפגישה נשים מולכם כמה אבנים באותו משקל, ותראו את ההבדל בעיניים.</p>
+    </header>
+    <div class="row">
+      <article class="shape reveal" tabindex="0">
+        <svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="40"/><polygon points="48,22 66.4,29.6 74,48 66.4,66.4 48,74 29.6,66.4 22,48 29.6,29.6"/><path d="M48 8v14M76.3 19.7 66.4 29.6M88 48H74M76.3 76.3 66.4 66.4M48 88V74M19.7 76.3 29.6 66.4M8 48h14M19.7 19.7l9.9 9.9M48 22 29.6 29.6 22 48 29.6 66.4 48 74 66.4 66.4 74 48 66.4 29.6Z"/></svg>
+        <h3>עגול</h3><div class="lat">Round Brilliant</div>
+        <p class="trait">הכי הרבה ברק ואש. הבחירה הקלאסית לטבעת אירוסין.</p>
+        <div class="ask"><span>מחיר לפי אבן</span><span>←</span></div>
+      </article>
+      <article class="shape reveal" tabindex="0">
+        <svg viewBox="0 0 96 96"><ellipse cx="48" cy="48" rx="27" ry="40"/><ellipse cx="48" cy="48" rx="13" ry="21"/><path d="M48 8v19M48 69v19M21 48h14M61 48h14M28 20l10 11M68 20 58 31M28 76l10-11M68 76 58 65"/></svg>
+        <h3>אובאלי</h3><div class="lat">Oval</div>
+        <p class="trait">ברק של עגול בצורה מוארכת, שגורמת לאצבע להיראות ארוכה יותר.</p>
+        <div class="ask"><span>מחיר לפי אבן</span><span>←</span></div>
+      </article>
+      <article class="shape reveal" tabindex="0">
+        <svg viewBox="0 0 96 96"><polygon points="32,8 64,8 76,20 76,76 64,88 32,88 20,76 20,20"/><polygon points="36,18 60,18 66,24 66,72 60,78 36,78 30,72 30,24"/><polygon points="40,28 56,28 58,30 58,66 56,68 40,68 38,66 38,30"/></svg>
+        <h3>אמרלד</h3><div class="lat">Emerald Cut</div>
+        <p class="trait">פחות נצנוץ, יותר שקיפות. מתאימה לאבן נקייה במיוחד.</p>
+        <div class="ask"><span>מחיר לפי אבן</span><span>←</span></div>
+      </article>
+      <article class="shape reveal" tabindex="0">
+        <svg viewBox="0 0 96 96"><path d="M48 6C36 26 22 42 22 58a26 26 0 0 0 52 0C74 42 60 26 48 6Z"/><path d="M48 28c-6 11-13 20-13 30a13 13 0 0 0 26 0c0-10-7-19-13-30Z"/><path d="M48 6v22M22 58h13M61 58h13M48 84V71"/></svg>
+        <h3>טיפה</h3><div class="lat">Pear</div>
+        <p class="trait">שילוב של עגול ומרקיזה. נראית מעודנת על כל אצבע.</p>
+        <div class="ask"><span>מחיר לפי אבן</span><span>←</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="closing front" id="contact">
+    <div class="eyebrow">BY APPOINTMENT</div>
+    <h2>רואים יהלום באור יום, לא במסך.</h2>
+    <p>קבעו פגישה, ונכין לכם מראש כמה אבנים שמתאימות לתקציב ולצורה שבחרתם.</p>
+    <a class="pill" href="#contact"><span>קביעת פגישה בוואטסאפ</span></a>
+    <div class="foot">
+      <a class="brand" href="#top"><span class="md">MD</span><span class="wm">MAIMON DIAMONDS<i>JEWELRY</i></span></a>
+      <span>הדגמת עיצוב · כל הטקסטים לדוגמה</span>
+      <button id="replay">הפעלה חוזרת של הפתיח</button>
+    </div>
+  </section>
+</main>
+
+<div id="labels" aria-hidden="true"><svg id="leaders"></svg></div>
+
+<script type="module" src="/src/main.js"></script>
+
+</body>
+</html>
